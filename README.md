@@ -27,7 +27,7 @@ This runs the tests and creates the application JAR in `target/`.
 
 The application starts at `http://localhost:8080`.
 
-Check its health:
+### Health check
 
 ```bash
 curl http://localhost:8080/actuator/health
@@ -39,6 +39,18 @@ Expected response when healthy:
 {"status":"UP"}
 ```
 
+### API documentation
+
+Swagger UI, open in your browser: http://localhost:8080/swagger-ui/index.html
+
+#### API docs
+```bash
+curl http://localhost:8080/api-docs
+```
+
+
+
+---
 Press `Ctrl+C` to stop the application.
 
 ## Run the built JAR
