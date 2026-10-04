@@ -1,3 +1,10 @@
 package fpenim.adventurebookapi.book.data.section.option;
 
-public record Consequence(ConsequenceType type, int value, String text) {}
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+public record Consequence(
+        @NotNull ConsequenceType type,
+        @NotNull @Positive int value,
+        String text
+) {}

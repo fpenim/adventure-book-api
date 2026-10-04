@@ -1,5 +1,6 @@
 package fpenim.adventurebookapi.seeder;
 
+import fpenim.adventurebookapi.book.dto.BookImportRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,8 +11,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -22,8 +26,11 @@ public class LocalBookSeeder implements ApplicationRunner {
 
     private final PathMatchingResourcePatternResolver resolver;
 
-    public LocalBookSeeder(ResourceLoader resourceLoader) {
+    private final JsonMapper jsonMapper;
+
+    public LocalBookSeeder(ResourceLoader resourceLoader, JsonMapper jsonMapper) {
         this.resolver = new PathMatchingResourcePatternResolver(resourceLoader);
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -31,19 +38,30 @@ public class LocalBookSeeder implements ApplicationRunner {
         Resource[] files =
                 resolver.getResources("classpath:/seed/books/*.json");
 
-        Arrays.sort(
-                files,
-                Comparator.comparing(Resource::getFilename)
-        );
+        Arrays.sort(files, Comparator.comparing(Resource::getFilename));
 
         if (files.length == 0) {
-            throw new IllegalStateException(
-                    "No seed files found in classpath:/seed/books/"
-            );
+            throw new IllegalStateException("No seed files found in classpath:/seed/books/");
         }
 
         for (Resource file : files) {
-            log.info("Found book seed file: {}", file.getFilename());
+            BookImportRequest book = readBook(file);
+
+            log.info("Parsed book '{}' from {}", book.title(), file.getFilename());
+        }
+    }
+
+    private BookImportRequest readBook(Resource file) {
+        try (InputStream input = file.getInputStream()) {
+            BookImportRequest book = jsonMapper.readValue(input, BookImportRequest.class);
+
+            if (book == null) {
+                throw new IllegalStateException("Seed file contains null: " + file.getFilename());
+            }
+
+            return book;
+        } catch (IOException | JacksonException exception) {
+            throw new IllegalStateException("Could not read book seed file: " + file.getFilename(), exception);
         }
     }
 }
