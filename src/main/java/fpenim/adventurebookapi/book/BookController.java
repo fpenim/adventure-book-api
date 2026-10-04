@@ -1,5 +1,7 @@
 package fpenim.adventurebookapi.book;
 
+import fpenim.adventurebookapi.book.data.Difficulty;
+import fpenim.adventurebookapi.book.dto.BookSummaryResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,21 +20,19 @@ public class BookController {
     }
 
     @GetMapping
-    public List<Book> getBooks(
-            @RequestParam(name = "title", required = false)
+    public List<BookSummaryResponse> getBooks(
+            @RequestParam(required = false)
             String title,
 
-            @RequestParam(name = "author", required = false)
+            @RequestParam(required = false)
             String author,
 
-            @RequestParam(name = "category", required = false)
+            @RequestParam(required = false)
             String category,
 
-            // For enum parameters, use the exact constant name, such as EASY.
-            // Spring’s default enum conversion is case-sensitive; an unrecognized value produces 400 Bad Request.
-            @RequestParam(name = "difficulty", required = false)
+            @RequestParam(required = false)
             Difficulty difficulty
     ) {
-        return bookService.findBooks(title, author, category, difficulty);
+        return bookService.findBooks(new BookFilter(title, author, category, difficulty));
     }
 }

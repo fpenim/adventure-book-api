@@ -1,58 +1,36 @@
 package fpenim.adventurebookapi.book;
 
+import fpenim.adventurebookapi.book.dto.BookSummaryResponse;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class BookService {
-    private final List<Book> books = List.of(
-            new Book(
-                    "The Lost Kingdom", "Jane Doe", List.of("Fantasy"),
-                    Difficulty.EASY, List.of()
-            ),
-            new Book(
-                    "The Hidden Forest", "John Smith", List.of("Fantasy", "Adventure"),
-                    Difficulty.HARD, List.of()
-            ),
-            new Book(
-                    "The Missing Key", "Jane Doe", List.of(),
-                    Difficulty.EASY, List.of()
-            )
-    );
 
-    public List<Book> findBooks(
-            String title,
-            String author,
-            String category,
-            Difficulty difficulty) {
+    private final BookRepository bookRepository;
 
-        return books.stream()
-                .filter(book -> containsIgnoreCase(book.title(), title))
-                .filter(book -> containsIgnoreCase(book.author(), author))
-                .filter(book -> matchesCategory(book.categories(), category))
-                .filter(book -> difficulty == null || book.difficulty() == difficulty)
+    public BookService(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookSummaryResponse> findBooks(BookFilter filter) {
+        return bookRepository.findAll(BookSpecifications.matches(filter))
+                .stream()
+                .map(this::toResponse)
                 .toList();
     }
 
-    private boolean containsIgnoreCase(String value, String filter) {
-        if (filter == null || filter.isBlank()) {
-            return true;
-        }
-
-        return value != null
-                && value.toLowerCase()
-                .contains(filter.strip().toLowerCase());
+    private BookSummaryResponse toResponse(BookEntity bookEntity) {
+        return new BookSummaryResponse(
+                bookEntity.getId(),
+                bookEntity.getTitle(),
+                bookEntity.getAuthor(),
+                bookEntity.getCategories(),
+                bookEntity.getDifficulty()
+        );
     }
-
-    private boolean matchesCategory(List<String> categories, String filter) {
-        if (filter == null || filter.isBlank()) {
-            return true;
-        }
-
-        return categories != null
-                && categories.stream()
-                .anyMatch(category -> category != null && category.equalsIgnoreCase(filter.strip()));
-    }
-
 }
