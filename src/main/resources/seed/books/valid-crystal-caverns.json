@@ -166,7 +166,7 @@
         },
         {
           "description": "Investigate the movement",
-          "gotoId": 666
+          "gotoId": 1000
         }
       ]
     },
@@ -174,11 +174,6 @@
       "id": 1000,
       "text": "You manage to swim across, shivering but alive. The glowing crystals ahead light your way to a massive door.",
       "type": "END"
-    },
-    {
-      "id": 666,
-      "text": "An unreachable dead end. You shouldn't be here.",
-      "type": "NODE"
     }
   ]
 }

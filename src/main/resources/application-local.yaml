@@ -4,11 +4,6 @@ spring:
     username: adventure
     password: local_dev_password
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    open-in-view: false
-
 management:
   endpoint:
     health:

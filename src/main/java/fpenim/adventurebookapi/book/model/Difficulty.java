@@ -1,4 +1,4 @@
-package fpenim.adventurebookapi.book.data;
+package fpenim.adventurebookapi.book.model;
 
 public enum Difficulty {
     EASY,

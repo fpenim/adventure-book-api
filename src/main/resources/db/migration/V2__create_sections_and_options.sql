@@ -36,7 +36,8 @@ CREATE TABLE options (
 
     CONSTRAINT fk_options_destination
         FOREIGN KEY (book_id, go_to)
-        REFERENCES sections (book_id, id),
+        REFERENCES sections (book_id, id)
+        DEFERRABLE INITIALLY DEFERRED,
 
     CONSTRAINT chk_option_position
         CHECK (position >= 0)

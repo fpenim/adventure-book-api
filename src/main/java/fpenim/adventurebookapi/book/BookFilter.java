@@ -1,6 +1,6 @@
 package fpenim.adventurebookapi.book;
 
-import fpenim.adventurebookapi.book.data.Difficulty;
+import fpenim.adventurebookapi.book.model.Difficulty;
 
 public record BookFilter(
         String title,

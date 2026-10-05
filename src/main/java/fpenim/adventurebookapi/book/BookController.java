@@ -1,6 +1,6 @@
 package fpenim.adventurebookapi.book;
 
-import fpenim.adventurebookapi.book.data.Difficulty;
+import fpenim.adventurebookapi.book.model.Difficulty;
 import fpenim.adventurebookapi.book.dto.BookSummaryResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

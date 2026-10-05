@@ -1,6 +1,6 @@
 package fpenim.adventurebookapi.book.dto;
 
-import fpenim.adventurebookapi.book.data.Difficulty;
+import fpenim.adventurebookapi.book.model.Difficulty;
 
 import java.util.List;
 

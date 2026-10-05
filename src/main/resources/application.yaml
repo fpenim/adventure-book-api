@@ -2,6 +2,11 @@ spring:
   application:
     name: adventure-book-api
 
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
 springdoc:
   api-docs:
     path: /api-docs

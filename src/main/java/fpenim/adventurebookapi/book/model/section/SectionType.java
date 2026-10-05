@@ -1,4 +1,4 @@
-package fpenim.adventurebookapi.book.data.section;
+package fpenim.adventurebookapi.book.model.section;
 
 public enum SectionType {
     BEGIN,

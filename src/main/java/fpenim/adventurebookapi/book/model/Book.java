@@ -1,6 +1,6 @@
-package fpenim.adventurebookapi.book.data;
+package fpenim.adventurebookapi.book.model;
 
-import fpenim.adventurebookapi.book.data.section.Section;
+import fpenim.adventurebookapi.book.model.section.Section;
 
 import java.util.List;
 

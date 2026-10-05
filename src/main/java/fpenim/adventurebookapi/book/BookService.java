@@ -2,6 +2,8 @@ package fpenim.adventurebookapi.book;
 
 import fpenim.adventurebookapi.book.dto.BookSummaryResponse;
 
+import fpenim.adventurebookapi.book.repository.BookEntity;
+import fpenim.adventurebookapi.book.repository.BookRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

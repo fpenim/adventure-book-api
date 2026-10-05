@@ -1,6 +1,7 @@
 package fpenim.adventurebookapi.book;
 
-import fpenim.adventurebookapi.book.data.Difficulty;
+import fpenim.adventurebookapi.book.model.Difficulty;
+import fpenim.adventurebookapi.book.repository.BookEntity;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.springframework.data.jpa.domain.Specification;
 
