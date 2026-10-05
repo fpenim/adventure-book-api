@@ -1,9 +1,9 @@
 package fpenim.adventurebookapi.seeder;
 
+import fpenim.adventurebookapi.book.BookImportValidator;
 import fpenim.adventurebookapi.book.dto.BookImportRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
@@ -28,9 +28,12 @@ public class LocalBookSeeder implements ApplicationRunner {
 
     private final JsonMapper jsonMapper;
 
-    public LocalBookSeeder(ResourceLoader resourceLoader, JsonMapper jsonMapper) {
+    private final BookImportValidator bookImportValidator;
+
+    public LocalBookSeeder(ResourceLoader resourceLoader, JsonMapper jsonMapper, BookImportValidator bookImportValidator) {
         this.resolver = new PathMatchingResourcePatternResolver(resourceLoader);
         this.jsonMapper = jsonMapper;
+        this.bookImportValidator = bookImportValidator;
     }
 
     @Override
@@ -47,7 +50,13 @@ public class LocalBookSeeder implements ApplicationRunner {
         for (Resource file : files) {
             BookImportRequest book = readBook(file);
 
-            log.info("Parsed book '{}' from {}", book.title(), file.getFilename());
+            try {
+                bookImportValidator.validateStructure(book);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid book seed file: " + file.getFilename() + ":" + e.getMessage(), e);
+            }
+
+            log.info("Valid book seed file '{}' from {}", book.title(), file.getFilename());
         }
     }
 
