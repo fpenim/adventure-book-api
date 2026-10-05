@@ -12,12 +12,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "books")
@@ -49,12 +48,7 @@ public class BookEntity {
     }
 
     public BookEntity(
-            String title,
-            String author,
-            Difficulty difficulty,
-            List<String> categories,
-            List<Section> sections
-    ) {
+            String title, String author, Difficulty difficulty, List<String> categories, List<Section> sections) {
         this.title = Objects.requireNonNull(title);
         this.author = Objects.requireNonNull(author);
         this.difficulty = Objects.requireNonNull(difficulty);

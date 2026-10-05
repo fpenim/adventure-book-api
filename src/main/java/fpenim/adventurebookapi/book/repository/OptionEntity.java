@@ -15,12 +15,11 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.Immutable;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.Immutable;
 
 @Entity
 @Immutable
@@ -52,10 +51,7 @@ public class OptionEntity {
 
     OptionEntity(SectionEntity section, int position, Option option) {
         this.section = Objects.requireNonNull(section);
-        this.id = new OptionId(
-                new SectionId(section.getId().getBookId(), section.getNumber()),
-                position
-        );
+        this.id = new OptionId(new SectionId(section.getId().getBookId(), section.getNumber()), position);
         this.description = Objects.requireNonNull(option.description());
         this.goTo = option.gotoId();
 
@@ -123,8 +119,7 @@ public class OptionEntity {
             if (!(o instanceof OptionId other)) {
                 return false;
             }
-            return Objects.equals(sectionId, other.sectionId)
-                    && Objects.equals(position, other.position);
+            return Objects.equals(sectionId, other.sectionId) && Objects.equals(position, other.position);
         }
 
         @Override

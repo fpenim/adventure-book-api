@@ -8,9 +8,8 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
-import org.springframework.stereotype.Service;
-
 import java.util.Set;
+import org.springframework.stereotype.Service;
 
 @Service
 public class BookImportService {
@@ -21,7 +20,8 @@ public class BookImportService {
 
     private final BookRepository bookRepository;
 
-    public BookImportService(BookImportValidator bookImportValidator, Validator validator, BookRepository bookRepository) {
+    public BookImportService(
+            BookImportValidator bookImportValidator, Validator validator, BookRepository bookRepository) {
         this.bookImportValidator = bookImportValidator;
         this.validator = validator;
         this.bookRepository = bookRepository;
@@ -42,9 +42,8 @@ public class BookImportService {
         }
 
         try {
-            bookRepository.save(new BookEntity(
-                    book.title(), book.author(), book.difficulty(), book.categories(), book.sections()
-            ));
+            bookRepository.save(
+                    new BookEntity(book.title(), book.author(), book.difficulty(), book.categories(), book.sections()));
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage(), e);
         }

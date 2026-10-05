@@ -2,6 +2,10 @@ package fpenim.adventurebookapi.seeder;
 
 import fpenim.adventurebookapi.book.BookImportService;
 import fpenim.adventurebookapi.book.dto.BookImportRequest;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Comparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -13,11 +17,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Comparator;
 
 @Component
 @Profile("local & seed")
@@ -38,8 +37,7 @@ public class LocalBookSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws IOException {
-        Resource[] files =
-                resolver.getResources("classpath:/seed/books/*.json");
+        Resource[] files = resolver.getResources("classpath:/seed/books/*.json");
 
         Arrays.sort(files, Comparator.comparing(Resource::getFilename));
 

@@ -11,12 +11,10 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers
 class AdventureBookApiApplicationTests {
 
-	@Container
-	@ServiceConnection
-	static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {}
 }

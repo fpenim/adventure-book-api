@@ -1,9 +1,9 @@
 package fpenim.adventurebookapi.book.repository;
 
-import fpenim.adventurebookapi.book.repository.OptionEntity.OptionId;
-import fpenim.adventurebookapi.book.repository.SectionEntity.SectionId;
 import fpenim.adventurebookapi.book.model.section.option.Consequence;
 import fpenim.adventurebookapi.book.model.section.option.ConsequenceType;
+import fpenim.adventurebookapi.book.repository.OptionEntity.OptionId;
+import fpenim.adventurebookapi.book.repository.SectionEntity.SectionId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EmbeddedId;
@@ -15,10 +15,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.Immutable;
-
 import java.io.Serializable;
 import java.util.Objects;
+import org.hibernate.annotations.Immutable;
 
 @Entity
 @Immutable
@@ -54,12 +53,8 @@ public class ConsequenceEntity {
 
         SectionId sectionId = option.getId().getSectionId();
         this.id = new ConsequenceId(
-                new OptionId(
-                        new SectionId(sectionId.getBookId(), sectionId.getNumber()),
-                        option.getPosition()
-                ),
-                position
-        );
+                new OptionId(new SectionId(sectionId.getBookId(), sectionId.getNumber()), option.getPosition()),
+                position);
         this.type = Objects.requireNonNull(consequence.type());
         this.value = consequence.value();
         this.text = consequence.text();
@@ -123,8 +118,7 @@ public class ConsequenceEntity {
             if (!(o instanceof ConsequenceId other)) {
                 return false;
             }
-            return Objects.equals(optionId, other.optionId)
-                    && Objects.equals(position, other.position);
+            return Objects.equals(optionId, other.optionId) && Objects.equals(position, other.position);
         }
 
         @Override

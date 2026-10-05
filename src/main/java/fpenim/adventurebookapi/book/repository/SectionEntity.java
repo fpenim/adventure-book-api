@@ -17,12 +17,11 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.Immutable;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.Immutable;
 
 @Entity
 @Immutable
@@ -123,8 +122,7 @@ public class SectionEntity {
             if (!(o instanceof SectionId other)) {
                 return false;
             }
-            return Objects.equals(bookId, other.bookId)
-                    && Objects.equals(number, other.number);
+            return Objects.equals(bookId, other.bookId) && Objects.equals(number, other.number);
         }
 
         @Override

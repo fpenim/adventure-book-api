@@ -1,7 +1,6 @@
 package fpenim.adventurebookapi.book;
 
 import fpenim.adventurebookapi.book.dto.BookSummaryResponse;
-
 import fpenim.adventurebookapi.book.repository.BookEntity;
 import fpenim.adventurebookapi.book.repository.BookRepository;
 import org.springframework.stereotype.Service;
@@ -20,8 +19,7 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public List<BookSummaryResponse> findBooks(BookFilter filter) {
-        return bookRepository.findAll(BookSpecifications.matches(filter))
-                .stream()
+        return bookRepository.findAll(BookSpecifications.matches(filter)).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -32,7 +30,6 @@ public class BookService {
                 bookEntity.getTitle(),
                 bookEntity.getAuthor(),
                 bookEntity.getCategories(),
-                bookEntity.getDifficulty()
-        );
+                bookEntity.getDifficulty());
     }
 }

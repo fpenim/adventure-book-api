@@ -1,11 +1,10 @@
 package fpenim.adventurebookapi.book;
 
-import fpenim.adventurebookapi.book.model.section.SectionType;
 import fpenim.adventurebookapi.book.dto.BookImportRequest;
-import org.springframework.stereotype.Component;
-
+import fpenim.adventurebookapi.book.model.section.SectionType;
 import java.util.HashSet;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 @Component
 public class BookImportValidator {
@@ -46,12 +45,9 @@ public class BookImportValidator {
             for (var option : section.options()) {
                 if (!sectionIds.contains(option.gotoId())) {
                     throw new IllegalArgumentException(
-                            "Section " + section.id() + " references missing section " + option.gotoId()
-                    );
+                            "Section " + section.id() + " references missing section " + option.gotoId());
                 }
             }
         }
-
-
     }
 }

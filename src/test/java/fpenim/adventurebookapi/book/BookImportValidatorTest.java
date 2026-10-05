@@ -1,17 +1,16 @@
 package fpenim.adventurebookapi.book;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import fpenim.adventurebookapi.book.dto.BookImportRequest;
 import fpenim.adventurebookapi.book.model.Difficulty;
 import fpenim.adventurebookapi.book.model.section.Section;
 import fpenim.adventurebookapi.book.model.section.SectionType;
 import fpenim.adventurebookapi.book.model.section.option.Option;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
 
 class BookImportValidatorTest {
 
@@ -19,44 +18,32 @@ class BookImportValidatorTest {
 
     @Test
     void acceptsValidBook() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 2, 3),
-                section(2, SectionType.NODE, 3),
-                section(3, SectionType.END)
-        );
+        BookImportRequest book =
+                book(section(1, SectionType.BEGIN, 2, 3), section(2, SectionType.NODE, 3), section(3, SectionType.END));
 
         assertThatCode(() -> validator.validateStructure(book)).doesNotThrowAnyException();
     }
 
     @Test
     void acceptsOptionsThatLoopBackToAnEarlierSection() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 2),
-                section(2, SectionType.NODE, 1, 3),
-                section(3, SectionType.END)
-        );
+        BookImportRequest book =
+                book(section(1, SectionType.BEGIN, 2), section(2, SectionType.NODE, 1, 3), section(3, SectionType.END));
 
         assertThatCode(() -> validator.validateStructure(book)).doesNotThrowAnyException();
     }
 
     @Test
     void acceptsMultipleEndSections() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 2, 3),
-                section(2, SectionType.END),
-                section(3, SectionType.END)
-        );
+        BookImportRequest book =
+                book(section(1, SectionType.BEGIN, 2, 3), section(2, SectionType.END), section(3, SectionType.END));
 
         assertThatCode(() -> validator.validateStructure(book)).doesNotThrowAnyException();
     }
 
     @Test
     void acceptsSectionThatNoOptionLeadsTo() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 3),
-                section(2, SectionType.NODE, 3),
-                section(3, SectionType.END)
-        );
+        BookImportRequest book =
+                book(section(1, SectionType.BEGIN, 3), section(2, SectionType.NODE, 3), section(3, SectionType.END));
 
         assertThatCode(() -> validator.validateStructure(book)).doesNotThrowAnyException();
     }
@@ -67,8 +54,7 @@ class BookImportValidatorTest {
                 section(1, SectionType.BEGIN, 2),
                 section(2, SectionType.NODE, 3),
                 section(2, SectionType.NODE, 3),
-                section(3, SectionType.END)
-        );
+                section(3, SectionType.END));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -77,10 +63,7 @@ class BookImportValidatorTest {
 
     @Test
     void rejectsEndSectionWithOptions() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 2),
-                section(2, SectionType.END, 1)
-        );
+        BookImportRequest book = book(section(1, SectionType.BEGIN, 2), section(2, SectionType.END, 1));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -89,10 +72,7 @@ class BookImportValidatorTest {
 
     @Test
     void rejectsBeginSectionWithoutOptions() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN),
-                section(2, SectionType.END)
-        );
+        BookImportRequest book = book(section(1, SectionType.BEGIN), section(2, SectionType.END));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -101,11 +81,8 @@ class BookImportValidatorTest {
 
     @Test
     void rejectsNodeSectionWithoutOptions() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 2),
-                section(2, SectionType.NODE),
-                section(3, SectionType.END)
-        );
+        BookImportRequest book =
+                book(section(1, SectionType.BEGIN, 2), section(2, SectionType.NODE), section(3, SectionType.END));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -114,10 +91,7 @@ class BookImportValidatorTest {
 
     @Test
     void rejectsBookWithoutBeginSection() {
-        BookImportRequest book = book(
-                section(1, SectionType.NODE, 2),
-                section(2, SectionType.END)
-        );
+        BookImportRequest book = book(section(1, SectionType.NODE, 2), section(2, SectionType.END));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -126,11 +100,8 @@ class BookImportValidatorTest {
 
     @Test
     void rejectsBookWithMultipleBeginSections() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 3),
-                section(2, SectionType.BEGIN, 3),
-                section(3, SectionType.END)
-        );
+        BookImportRequest book =
+                book(section(1, SectionType.BEGIN, 3), section(2, SectionType.BEGIN, 3), section(3, SectionType.END));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -139,10 +110,7 @@ class BookImportValidatorTest {
 
     @Test
     void rejectsBookWithoutEndSection() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 2),
-                section(2, SectionType.NODE, 1)
-        );
+        BookImportRequest book = book(section(1, SectionType.BEGIN, 2), section(2, SectionType.NODE, 1));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -151,10 +119,7 @@ class BookImportValidatorTest {
 
     @Test
     void rejectsOptionPointingAtMissingSection() {
-        BookImportRequest book = book(
-                section(1, SectionType.BEGIN, 99),
-                section(2, SectionType.END)
-        );
+        BookImportRequest book = book(section(1, SectionType.BEGIN, 99), section(2, SectionType.END));
 
         assertThatThrownBy(() -> validator.validateStructure(book))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -162,13 +127,7 @@ class BookImportValidatorTest {
     }
 
     private static BookImportRequest book(Section... sections) {
-        return new BookImportRequest(
-                "Test Book",
-                "Test Author",
-                List.of(),
-                Difficulty.EASY,
-                List.of(sections)
-        );
+        return new BookImportRequest("Test Book", "Test Author", List.of(), Difficulty.EASY, List.of(sections));
     }
 
     private static Section section(int id, SectionType type, int... gotoIds) {

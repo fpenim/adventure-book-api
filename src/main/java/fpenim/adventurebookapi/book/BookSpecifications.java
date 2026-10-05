@@ -2,10 +2,9 @@ package fpenim.adventurebookapi.book;
 
 import fpenim.adventurebookapi.book.model.Difficulty;
 import fpenim.adventurebookapi.book.repository.BookEntity;
+import java.util.Locale;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.springframework.data.jpa.domain.Specification;
-
-import java.util.Locale;
 
 public final class BookSpecifications {
 
@@ -24,11 +23,7 @@ public final class BookSpecifications {
                 return cb.conjunction();
             }
 
-            return cb.like(
-                    cb.lower(root.get("title")),
-                    containsPattern(title),
-                    '!'
-            );
+            return cb.like(cb.lower(root.get("title")), containsPattern(title), '!');
         };
     }
 
@@ -38,11 +33,7 @@ public final class BookSpecifications {
                 return cb.conjunction();
             }
 
-            return cb.like(
-                    cb.lower(root.get("author")),
-                    containsPattern(author),
-                    '!'
-            );
+            return cb.like(cb.lower(root.get("author")), containsPattern(author), '!');
         };
     }
 
@@ -66,20 +57,13 @@ public final class BookSpecifications {
 
             HibernateCriteriaBuilder hcb = (HibernateCriteriaBuilder) cb;
 
-            return hcb.isTrue(
-                    hcb.sql(
-                            """
+            return hcb.isTrue(hcb.sql("""
                             exists (
                                 select 1
                                 from unnest(?) as category_item(value)
                                 where lower(category_item.value) = ?
                             )
-                            """,
-                            Boolean.class,
-                            root.get("categories"),
-                            hcb.value(normalized)
-                    )
-            );
+                            """, Boolean.class, root.get("categories"), hcb.value(normalized)));
         };
     }
 
