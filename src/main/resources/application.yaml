@@ -1,6 +1,9 @@
 spring:
   application:
     name: adventure-book-api
+  mvc:
+    problemdetails:
+      enabled: true
 
   jpa:
     hibernate:
