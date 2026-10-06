@@ -26,20 +26,23 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public BookSummaryResponse findBookById(Long id) {
-        return bookRepository.findById(id).map(this::toResponse).orElse(null);
+        return bookRepository.findById(id)
+                .map(this::toResponse)
+                .orElseThrow(() -> new BookNotFoundException(id));
     }
 
     @Transactional
     public void addBookCategory(Long id, String category) {
         BookEntity book = bookRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Book with id: ["+ id +"] not found."));
+                .orElseThrow(() -> new BookNotFoundException(id));
 
         book.addCategory(category);
     }
+
     @Transactional
     public void removeBookCategory(Long id, String category) {
         BookEntity book = bookRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Book with id: ["+ id +"] not found."));
+                .orElseThrow(() -> new BookNotFoundException(id));
 
         book.removeCategory(category);
     }

@@ -2,7 +2,6 @@ package fpenim.adventurebookapi.book;
 
 import fpenim.adventurebookapi.book.dto.BookSummaryResponse;
 import fpenim.adventurebookapi.book.model.Difficulty;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -35,38 +33,16 @@ public class BookController {
 
     @GetMapping(path = "/{id}")
     public BookSummaryResponse getBook(@PathVariable Long id) {
-        BookSummaryResponse book = bookService.findBookById(id);
-
-        if (book == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-        return book;
+        return bookService.findBookById(id);
     }
 
     @PutMapping(path = "/{id}/categories/{category}")
-    public void addBookCategory(
-            @PathVariable
-            Long id,
-            @PathVariable
-            String category
-    ) {
-        try {
-            bookService.addBookCategory(id, category);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+    public void addBookCategory(@PathVariable Long id, @PathVariable String category) {
+        bookService.addBookCategory(id, category);
     }
 
     @DeleteMapping(path = "/{id}/categories/{category}")
-    public void removeBookCategory(
-            @PathVariable Long id,
-            @PathVariable String category
-    ) {
-        try {
-            bookService.removeBookCategory(id, category);
-        }  catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+    public void removeBookCategory(@PathVariable Long id, @PathVariable String category) {
+        bookService.removeBookCategory(id, category);
     }
 }
