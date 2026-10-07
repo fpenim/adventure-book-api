@@ -63,12 +63,8 @@ public class SectionEntity {
         }
     }
 
-    public SectionId getId() {
-        return id;
-    }
-
-    public Integer getNumber() {
-        return id.getNumber();
+    public int getId() {
+        return id.number;
     }
 
     public BookEntity getBook() {
