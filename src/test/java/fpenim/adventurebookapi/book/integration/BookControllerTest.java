@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,9 +30,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -45,6 +48,7 @@ class BookControllerTest {
     private static final String CAVERNS = "The Crystal Caverns";
     private static final String TOWER = "The Sunken Tower";
     private static final String SPECIAL = "100% Pure_Gold!";
+    private static final String DESERT = "The Glass Desert";
     private static final long UNKNOWN_BOOK_ID = 999_999L;
     private static final int MAX_STEPS = 50;
     private static final String BOOK_PATH = "/books/{id}";
@@ -204,6 +208,87 @@ class BookControllerTest {
         mockMvc.perform(get(BOOK_PATH, UNKNOWN_BOOK_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value(containsString(String.valueOf(UNKNOWN_BOOK_ID))));
+    }
+
+    // Add book
+
+    @Test
+    void addBookReturns201WithLocationAndTheNewBook() throws Exception {
+        String location = mockMvc.perform(addRequest(towerBook(DESERT, "Idris Vale", List.of("survival"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value(DESERT))
+                .andExpect(jsonPath("$.author").value("Idris Vale"))
+                .andExpect(jsonPath("$.difficulty").value("MEDIUM"))
+                .andExpect(jsonPath("$.categories", contains("survival")))
+                .andExpect(jsonPath("$._links.start.href").value(endsWith("/adventures/start")))
+                .andReturn()
+                .getResponse()
+                .getHeader("Location");
+
+        long desertId = bookId(DESERT);
+
+        assertThat(location).endsWith("/books/" + desertId);
+        mockMvc.perform(get(URI.create(location)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(desertId))
+                .andExpect(jsonPath("$._links.begin.href").value(endsWith("/books/" + desertId + "/sections/5")));
+        mockMvc.perform(get("/books"))
+                .andExpect(jsonPath("$._embedded.books.length()").value(3));
+    }
+
+    @Test
+    void addBookAcceptsTheSeedFileFormat() throws Exception {
+        try (InputStream input = new ClassPathResource("seed/books/valid-crystal-caverns.json").getInputStream()) {
+            mockMvc.perform(post("/books")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(input.readAllBytes()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.title").value(CAVERNS))
+                    .andExpect(jsonPath("$.beginSectionId").value(1));
+        }
+    }
+
+    @Test
+    void addBookReturns400ForBlankTitle() throws Exception {
+        mockMvc.perform(addRequest(towerBook(" ", "Idris Vale", List.of())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(startsWith("Invalid book")))
+                .andExpect(jsonPath("$.detail").value(containsString("title")));
+
+        assertNoBookWasAdded();
+    }
+
+    @Test
+    void addBookReturns400ForOptionPointingAtMissingSection() throws Exception {
+        BookImportRequest book = book(
+                DESERT,
+                new Section(1, "Sand in every direction.", SectionType.BEGIN, List.of(new Option("Walk", 99, null))),
+                new Section(2, "An oasis.", SectionType.END, List.of()));
+
+        mockMvc.perform(addRequest(book))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(containsString("Section 1 references missing section 99")));
+
+        assertNoBookWasAdded();
+    }
+
+    @Test
+    void addBookReturns400WhenThereIsNoBeginSection() throws Exception {
+        BookImportRequest book = book(DESERT, new Section(1, "An oasis.", SectionType.END, List.of()));
+
+        mockMvc.perform(addRequest(book))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(containsString("Expected 1 BEGIN section but got: 0")));
+
+        assertNoBookWasAdded();
+    }
+
+    @Test
+    void addBookReturns400ForMalformedBody() throws Exception {
+        mockMvc.perform(post("/books").contentType(MediaType.APPLICATION_JSON).content("{not json"))
+                .andExpect(status().isBadRequest());
+
+        assertNoBookWasAdded();
     }
 
     // Book categories
@@ -367,7 +452,16 @@ class BookControllerTest {
 
     // Begins on section 5 so its begin link differs from the caverns book, which begins on section 1.
     private void importBook(String title, String author, List<String> categories, Difficulty difficulty) {
-        bookImportService.importBook(new BookImportRequest(
+        bookImportService.importBook(towerBook(title, author, categories, difficulty));
+    }
+
+    private static BookImportRequest towerBook(String title, String author, List<String> categories) {
+        return towerBook(title, author, categories, Difficulty.MEDIUM);
+    }
+
+    private static BookImportRequest towerBook(
+            String title, String author, List<String> categories, Difficulty difficulty) {
+        return new BookImportRequest(
                 title,
                 author,
                 categories,
@@ -378,7 +472,20 @@ class BookControllerTest {
                                 "You wake at the foot of a drowned tower.",
                                 SectionType.BEGIN,
                                 List.of(new Option("Climb the stairs", 6, List.of()))),
-                        new Section(6, "The tower top opens to the sky.", SectionType.END, List.of()))));
+                        new Section(6, "The tower top opens to the sky.", SectionType.END, List.of())));
+    }
+
+    private static BookImportRequest book(String title, Section... sections) {
+        return new BookImportRequest(title, "Idris Vale", List.of(), Difficulty.MEDIUM, List.of(sections));
+    }
+
+    private MockHttpServletRequestBuilder addRequest(BookImportRequest book) {
+        return post("/books").contentType(MediaType.APPLICATION_JSON).content(jsonMapper.writeValueAsString(book));
+    }
+
+    private void assertNoBookWasAdded() throws Exception {
+        mockMvc.perform(get("/books"))
+                .andExpect(jsonPath("$._embedded.books.length()").value(2));
     }
 
     private String body(RequestBuilder request) throws Exception {

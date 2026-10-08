@@ -91,7 +91,7 @@ public class BookRepository {
                 > 0;
     }
 
-    public void insert(BookImportRequest book) {
+    public Long insert(BookImportRequest book) {
         Long bookId = dsl.insertInto(BOOKS)
                 .set(BOOKS.TITLE, book.title())
                 .set(BOOKS.AUTHOR, book.author())
@@ -131,6 +131,8 @@ public class BookRepository {
         dsl.batchInsert(sections).execute();
         dsl.batchInsert(options).execute();
         dsl.batchInsert(consequences).execute();
+
+        return bookId;
     }
 
     // Every book has exactly one BEGIN section, enforced on import.
