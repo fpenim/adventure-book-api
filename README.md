@@ -67,6 +67,42 @@ The OpenAPI document:
 curl http://localhost:8080/api-docs
 ```
 
+### Playing a book
+
+A player is identified by the `X-Username` header, which every adventure endpoint requires. A player can have several adventures at once, on the same book or on different books, and can only see their own.
+
+Each book returned by `/books` has a `start` link. Posting the book's id to it starts an adventure at the book's first section with 10 health points:
+
+```bash
+curl -i -X POST -H 'X-Username: alice' -H 'Content-Type: application/json' -d '{"bookId": 1}' http://localhost:8080/adventures/start
+```
+
+The response is the adventure's state, and its `Location` header points to the new adventure. Read the state again at any time to resume:
+
+```bash
+curl -H 'X-Username: alice' http://localhost:8080/adventures/1
+```
+
+The state lists the options of the current section, each with its `option` number (starting at 0) and the consequences of taking it. Move by choosing one:
+
+```bash
+curl -X POST -H 'X-Username: alice' -H 'Content-Type: application/json' -d '{"option": 0}' http://localhost:8080/adventures/1/move
+```
+
+Consequences add or remove health. The adventure's `status` is `IN_PROGRESS`, `DEAD` when health reaches zero, or `FINISHED` on an ending section. A dead or finished adventure can no longer move (409); start a new one to play again.
+
+List your adventures:
+
+```bash
+curl -H 'X-Username: alice' http://localhost:8080/adventures
+```
+
+Delete one:
+
+```bash
+curl -X DELETE -H 'X-Username: alice' http://localhost:8080/adventures/1
+```
+
 ### Health check
 
 ```bash

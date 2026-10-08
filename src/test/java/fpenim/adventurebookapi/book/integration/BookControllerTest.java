@@ -87,7 +87,7 @@ class BookControllerTest {
     // Books
 
     @Test
-    void getBooksReturnsEachBookWithItsOwnSelfAndBeginLinks() throws Exception {
+    void getBooksReturnsEachBookWithItsOwnSelfBeginAndStartLinks() throws Exception {
         mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.books.length()").value(2))
@@ -95,10 +95,14 @@ class BookControllerTest {
                         .value(contains(endsWith("/books/" + cavernsId))))
                 .andExpect(jsonPath(embeddedBook(CAVERNS) + "._links.begin.href")
                         .value(contains(endsWith("/books/" + cavernsId + "/sections/1"))))
+                .andExpect(jsonPath(embeddedBook(CAVERNS) + "._links.start.href")
+                        .value(contains(endsWith("/adventures/start"))))
                 .andExpect(jsonPath(embeddedBook(TOWER) + "._links.self.href")
                         .value(contains(endsWith("/books/" + towerId))))
                 .andExpect(jsonPath(embeddedBook(TOWER) + "._links.begin.href")
-                        .value(contains(endsWith("/books/" + towerId + "/sections/5"))));
+                        .value(contains(endsWith("/books/" + towerId + "/sections/5"))))
+                .andExpect(jsonPath(embeddedBook(TOWER) + "._links.start.href")
+                        .value(contains(endsWith("/adventures/start"))));
     }
 
     @Test
@@ -185,13 +189,14 @@ class BookControllerTest {
     // Book
 
     @Test
-    void getBookReturnsBookWithBeginLink() throws Exception {
+    void getBookReturnsBookWithBeginAndStartLinks() throws Exception {
         mockMvc.perform(get(BOOK_PATH, cavernsId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value(CAVERNS))
                 .andExpect(jsonPath("$.author").value("Evelyn Stormrider"))
                 .andExpect(jsonPath("$.difficulty").value("EASY"))
-                .andExpect(jsonPath("$._links.begin.href").value(endsWith("/books/" + cavernsId + "/sections/1")));
+                .andExpect(jsonPath("$._links.begin.href").value(endsWith("/books/" + cavernsId + "/sections/1")))
+                .andExpect(jsonPath("$._links.start.href").value(endsWith("/adventures/start")));
     }
 
     @Test
