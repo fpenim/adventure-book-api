@@ -1,5 +1,7 @@
 # Adventure Book API
 
+> **_NOTE:_**  This project implements all 6 challenge objectives.
+
 REST API for choose-your-own-adventure books, built with Java 25, Spring Boot and PostgreSQL.
 
 ## Requirements
