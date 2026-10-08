@@ -11,12 +11,11 @@ import fpenim.adventurebookapi.book.repository.BookRepository;
 import fpenim.adventurebookapi.book.repository.ConsequenceEntity;
 import fpenim.adventurebookapi.book.repository.SectionEntity;
 import fpenim.adventurebookapi.book.repository.SectionRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BookService {
