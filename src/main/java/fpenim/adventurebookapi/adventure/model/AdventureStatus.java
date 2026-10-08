@@ -7,7 +7,6 @@ public enum AdventureStatus {
     DEAD,
     FINISHED;
 
-    // Not stored: it follows from the health and the section the player is on.
     public static AdventureStatus of(int health, SectionType sectionType) {
         if (health <= 0) {
             return DEAD;

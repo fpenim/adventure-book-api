@@ -91,7 +91,6 @@ public class AdventureService {
         }
     }
 
-    // Applied in order. Health never goes below zero, and nothing heals a player who has died.
     private static int applyConsequences(int health, List<Consequence> consequences) {
         for (Consequence consequence : consequences) {
             health = switch (consequence.type()) {

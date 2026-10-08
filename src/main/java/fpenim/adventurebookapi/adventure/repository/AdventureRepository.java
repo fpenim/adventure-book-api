@@ -38,7 +38,6 @@ public class AdventureRepository {
         return selectAdventure(id, username).fetchOptional(mapping(Adventure::new));
     }
 
-    /** Locks the row until the transaction ends, so concurrent moves on one adventure run one after the other. */
     public Optional<Adventure> findByIdAndUsernameForUpdate(Long id, String username) {
         return selectAdventure(id, username).forUpdate().fetchOptional(mapping(Adventure::new));
     }
@@ -76,7 +75,6 @@ public class AdventureRepository {
                 .execute();
     }
 
-    /** Returns false when the user has no adventure with that id. */
     public boolean delete(Long id, String username) {
         return dsl.deleteFrom(ADVENTURES)
                         .where(ADVENTURES.ID.eq(id))
