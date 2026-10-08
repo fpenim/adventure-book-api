@@ -3,6 +3,7 @@ package fpenim.adventurebookapi.book;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import fpenim.adventurebookapi.adventure.AdventureController;
 import fpenim.adventurebookapi.book.dto.BookSummaryResponse;
 import fpenim.adventurebookapi.book.dto.SectionResponse;
 import fpenim.adventurebookapi.book.model.Difficulty;
@@ -41,7 +42,9 @@ public class BookController {
                                 linkTo(methodOn(BookController.class).getBook(book.id()))
                                         .withSelfRel(),
                                 linkTo(methodOn(BookController.class).getSection(book.id(), book.beginSectionId()))
-                                        .withRel("begin")))
+                                        .withRel("begin"),
+                                linkTo(methodOn(AdventureController.class).startAdventure(book.id(), null))
+                                        .withRel("start")))
                         .toList();
 
         return CollectionModel.of(bookList);
@@ -54,7 +57,9 @@ public class BookController {
         return EntityModel.of(
                 book,
                 linkTo(methodOn(BookController.class).getSection(id, book.beginSectionId()))
-                        .withRel("begin"));
+                        .withRel("begin"),
+                linkTo(methodOn(AdventureController.class).startAdventure(id, null))
+                        .withRel("start"));
     }
 
     @GetMapping(path = "/{id}/sections/{sectionId}")
