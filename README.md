@@ -42,6 +42,7 @@ Things to know:
 
 - The `local` profile holds the database connection. Without it the application has no datasource and fails to start.
 - The database schema is created and updated by Flyway on startup, from `src/main/resources/db/migration`.
+- The database is queried with jOOQ. Its table classes are generated on every build into `target/generated-sources/jooq`, by applying the same migrations to a temporary PostgreSQL container, so Docker must be running to compile. After changing a migration, rebuild to refresh them.
 - The `seed` profile imports every JSON file in `src/main/resources/seed/books`. It is meant to run once: running it again inserts the same books a second time.
 
 ### 3. Stop the database
@@ -88,7 +89,7 @@ Docker must be running. The tests start their own temporary PostgreSQL container
 ./mvnw clean package
 ```
 
-This runs the tests, so Docker must be running, and creates the application JAR in `target/`.
+This generates the jOOQ classes and runs the tests, so Docker must be running, and creates the application JAR in `target/`.
 
 ## Run the built JAR
 

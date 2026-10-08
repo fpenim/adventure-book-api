@@ -1,15 +1,14 @@
 package fpenim.adventurebookapi.book;
 
 import fpenim.adventurebookapi.book.dto.BookImportRequest;
-import fpenim.adventurebookapi.book.repository.BookEntity;
 import fpenim.adventurebookapi.book.repository.BookRepository;
-import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 import java.util.Set;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BookImportService {
@@ -42,8 +41,7 @@ public class BookImportService {
         }
 
         try {
-            bookRepository.save(
-                    new BookEntity(book.title(), book.author(), book.difficulty(), book.categories(), book.sections()));
+            bookRepository.insert(book);
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage(), e);
         }
