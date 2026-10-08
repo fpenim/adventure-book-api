@@ -43,7 +43,7 @@ public class BookController {
                                         .withSelfRel(),
                                 linkTo(methodOn(BookController.class).getSection(book.id(), book.beginSectionId()))
                                         .withRel("begin"),
-                                linkTo(methodOn(AdventureController.class).startAdventure(book.id(), null))
+                                linkTo(methodOn(AdventureController.class).startAdventure(null, null))
                                         .withRel("start")))
                         .toList();
 
@@ -58,7 +58,7 @@ public class BookController {
                 book,
                 linkTo(methodOn(BookController.class).getSection(id, book.beginSectionId()))
                         .withRel("begin"),
-                linkTo(methodOn(AdventureController.class).startAdventure(id, null))
+                linkTo(methodOn(AdventureController.class).startAdventure(null, null))
                         .withRel("start"));
     }
 

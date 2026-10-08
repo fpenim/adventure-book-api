@@ -6,6 +6,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import fpenim.adventurebookapi.adventure.dto.AdventureResponse;
 import fpenim.adventurebookapi.adventure.dto.AdventureSummaryResponse;
 import fpenim.adventurebookapi.adventure.dto.MoveRequest;
+import fpenim.adventurebookapi.adventure.dto.StartAdventureRequest;
 import fpenim.adventurebookapi.adventure.model.AdventureStatus;
 import fpenim.adventurebookapi.book.BookController;
 import jakarta.validation.Valid;
@@ -34,10 +35,10 @@ public class AdventureController {
         this.adventureService = adventureService;
     }
 
-    @PostMapping(path = "/books/{bookId}/adventure/start")
+    @PostMapping(path = "/adventures/start")
     public ResponseEntity<EntityModel<AdventureResponse>> startAdventure(
-            @PathVariable Long bookId, @RequestHeader(USERNAME_HEADER) String username) {
-        AdventureResponse adventure = adventureService.startAdventure(username, bookId);
+            @RequestHeader(USERNAME_HEADER) String username, @Valid @RequestBody StartAdventureRequest request) {
+        AdventureResponse adventure = adventureService.startAdventure(username, request.bookId());
 
         return ResponseEntity.created(linkTo(methodOn(AdventureController.class).getAdventure(adventure.id(), null))
                         .toUri())

@@ -33,6 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -49,7 +50,7 @@ class AdventureControllerTest {
     private static final String ALICE = "alice";
     private static final String BOB = "bob";
     private static final long UNKNOWN_ID = 999_999L;
-    private static final String START_PATH = "/books/{bookId}/adventure/start";
+    private static final String START_PATH = "/adventures/start";
     private static final String ADVENTURES_PATH = "/adventures";
     private static final String ADVENTURE_PATH = "/adventures/{id}";
     private static final String MOVE_PATH = "/adventures/{id}/move";
@@ -100,7 +101,7 @@ class AdventureControllerTest {
 
     @Test
     void startAdventureCreatesAnAdventureAtTheBeginSectionWithFullHealth() throws Exception {
-        mockMvc.perform(post(START_PATH, bridgeId).header(USERNAME_HEADER, ALICE))
+        mockMvc.perform(startRequest(bridgeId).header(USERNAME_HEADER, ALICE))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.username").value(ALICE))
@@ -113,7 +114,7 @@ class AdventureControllerTest {
 
     @Test
     void startAdventureReturnsTheLocationOfTheNewAdventure() throws Exception {
-        String location = mockMvc.perform(post(START_PATH, bridgeId).header(USERNAME_HEADER, ALICE))
+        String location = mockMvc.perform(startRequest(bridgeId).header(USERNAME_HEADER, ALICE))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", containsString("/adventures/")))
                 .andReturn()
@@ -133,7 +134,10 @@ class AdventureControllerTest {
                 .getContentAsString();
         String href = JsonPath.read(book, "$._links.start.href");
 
-        mockMvc.perform(post(URI.create(href)).header(USERNAME_HEADER, ALICE))
+        mockMvc.perform(post(URI.create(href))
+                        .header(USERNAME_HEADER, ALICE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"bookId\": " + bridgeId + "}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.bookId").value(bridgeId));
     }
@@ -155,26 +159,35 @@ class AdventureControllerTest {
 
     @Test
     void startAdventureStripsWhitespaceAroundTheUsername() throws Exception {
-        mockMvc.perform(post(START_PATH, bridgeId).header(USERNAME_HEADER, "  " + ALICE + " "))
+        mockMvc.perform(startRequest(bridgeId).header(USERNAME_HEADER, "  " + ALICE + " "))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").value(ALICE));
     }
 
     @Test
     void startAdventureReturns404ForUnknownBook() throws Exception {
-        mockMvc.perform(post(START_PATH, UNKNOWN_ID).header(USERNAME_HEADER, ALICE))
+        mockMvc.perform(startRequest(UNKNOWN_ID).header(USERNAME_HEADER, ALICE))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value(containsString(String.valueOf(UNKNOWN_ID))));
     }
 
     @Test
+    void startAdventureReturns400WithoutBookId() throws Exception {
+        mockMvc.perform(post(START_PATH)
+                        .header(USERNAME_HEADER, ALICE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void startAdventureReturns400WithoutUsername() throws Exception {
-        mockMvc.perform(post(START_PATH, bridgeId)).andExpect(status().isBadRequest());
+        mockMvc.perform(startRequest(bridgeId)).andExpect(status().isBadRequest());
     }
 
     @Test
     void startAdventureReturns400ForBlankUsername() throws Exception {
-        mockMvc.perform(post(START_PATH, bridgeId).header(USERNAME_HEADER, " ")).andExpect(status().isBadRequest());
+        mockMvc.perform(startRequest(bridgeId).header(USERNAME_HEADER, " ")).andExpect(status().isBadRequest());
     }
 
     // Get
@@ -519,13 +532,17 @@ class AdventureControllerTest {
     }
 
     private long start(String username, long bookId) throws Exception {
-        String body = mockMvc.perform(post(START_PATH, bookId).header(USERNAME_HEADER, username))
+        String body = mockMvc.perform(startRequest(bookId).header(USERNAME_HEADER, username))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
         return JsonPath.<Number>read(body, "$.id").longValue();
+    }
+
+    private static MockHttpServletRequestBuilder startRequest(long bookId) {
+        return post(START_PATH).contentType(MediaType.APPLICATION_JSON).content("{\"bookId\": " + bookId + "}");
     }
 
     private ResultActions move(String username, long id, int option) throws Exception {

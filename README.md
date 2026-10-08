@@ -71,10 +71,10 @@ curl http://localhost:8080/api-docs
 
 A player is identified by the `X-Username` header, which every adventure endpoint requires. A player can have several adventures at once, on the same book or on different books, and can only see their own.
 
-Each book returned by `/books` has a `start` link. Posting to it starts an adventure at the book's first section with 10 health points:
+Each book returned by `/books` has a `start` link. Posting the book's id to it starts an adventure at the book's first section with 10 health points:
 
 ```bash
-curl -i -X POST -H 'X-Username: alice' http://localhost:8080/books/1/adventure/start
+curl -i -X POST -H 'X-Username: alice' -H 'Content-Type: application/json' -d '{"bookId": 1}' http://localhost:8080/adventures/start
 ```
 
 The response is the adventure's state, and its `Location` header points to the new adventure. Read the state again at any time to resume:
