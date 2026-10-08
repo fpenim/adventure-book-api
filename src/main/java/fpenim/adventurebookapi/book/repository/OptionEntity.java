@@ -51,7 +51,7 @@ public class OptionEntity {
 
     OptionEntity(SectionEntity section, int position, Option option) {
         this.section = Objects.requireNonNull(section);
-        this.id = new OptionId(new SectionId(section.getId().getBookId(), section.getNumber()), position);
+        this.id = new OptionId(new SectionId(section.getBook().getId(), section.getId()), position);
         this.description = Objects.requireNonNull(option.description());
         this.goTo = option.gotoId();
 
