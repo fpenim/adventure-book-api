@@ -1,5 +1,17 @@
 package fpenim.adventurebookapi.book.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.jayway.jsonpath.JsonPath;
 import fpenim.adventurebookapi.book.BookImportService;
 import fpenim.adventurebookapi.book.dto.BookImportRequest;
@@ -7,6 +19,9 @@ import fpenim.adventurebookapi.book.model.Difficulty;
 import fpenim.adventurebookapi.book.model.section.Section;
 import fpenim.adventurebookapi.book.model.section.SectionType;
 import fpenim.adventurebookapi.book.model.section.option.Option;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,20 +37,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
@@ -43,9 +44,11 @@ class BookControllerTest {
 
     private static final String CAVERNS = "The Crystal Caverns";
     private static final String TOWER = "The Sunken Tower";
+    private static final String SPECIAL = "100% Pure_Gold!";
     private static final long UNKNOWN_BOOK_ID = 999_999L;
     private static final int MAX_STEPS = 50;
     private static final String BOOK_PATH = "/books/{id}";
+    private static final String CATEGORY_PATH = "/books/{id}/categories/{category}";
     private static final String SECTION_PATH = "/books/{id}/sections/{sectionId}";
 
     @Container
@@ -75,19 +78,7 @@ class BookControllerTest {
             bookImportService.importBook(jsonMapper.readValue(input, BookImportRequest.class));
         }
 
-        // Begins on section 5 so its begin link differs from the caverns book, which begins on section 1.
-        bookImportService.importBook(new BookImportRequest(
-                TOWER,
-                "Mara Voss",
-                List.of("mystery"),
-                Difficulty.HARD,
-                List.of(
-                        new Section(
-                                5,
-                                "You wake at the foot of a drowned tower.",
-                                SectionType.BEGIN,
-                                List.of(new Option("Climb the stairs", 6, List.of()))),
-                        new Section(6, "The tower top opens to the sky.", SectionType.END, List.of()))));
+        importBook(TOWER, "Mara Voss", List.of("mystery"), Difficulty.HARD);
 
         cavernsId = bookId(CAVERNS);
         towerId = bookId(TOWER);
@@ -120,13 +111,75 @@ class BookControllerTest {
                         .value(endsWith("/books/" + towerId + "/sections/5")));
     }
 
-    @Test
-    void getBooksReturns404WhenAMatchingBookHasNoBeginSection() throws Exception {
-        long brokenId = insertBookWithoutSections();
+    // Books filters
 
-        mockMvc.perform(get("/books"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.detail").value("BEGIN section on book id [" + brokenId + "] not found."));
+    @Test
+    void getBooksFiltersByAuthorIgnoringCaseAndSurroundingWhitespace() throws Exception {
+        mockMvc.perform(get("/books").param("author", "  STORM "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.books.length()").value(1))
+                .andExpect(jsonPath("$._embedded.books[0].title").value(CAVERNS));
+    }
+
+    @Test
+    void getBooksFiltersByCategoryIgnoringCase() throws Exception {
+        mockMvc.perform(get("/books").param("category", " Mystery "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.books.length()").value(1))
+                .andExpect(jsonPath("$._embedded.books[0].title").value(TOWER));
+    }
+
+    @Test
+    void getBooksMatchesCategoryExactlyRatherThanPartially() throws Exception {
+        mockMvc.perform(get("/books").param("category", "myst"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.books").doesNotExist());
+    }
+
+    @Test
+    void getBooksFiltersByDifficulty() throws Exception {
+        mockMvc.perform(get("/books").param("difficulty", "HARD"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.books.length()").value(1))
+                .andExpect(jsonPath("$._embedded.books[0].title").value(TOWER));
+    }
+
+    @Test
+    void getBooksReturns400ForUnknownDifficulty() throws Exception {
+        mockMvc.perform(get("/books").param("difficulty", "IMPOSSIBLE")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getBooksCombinesFiltersWithAnd() throws Exception {
+        mockMvc.perform(get("/books").param("author", "voss").param("difficulty", "HARD"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.books.length()").value(1))
+                .andExpect(jsonPath("$._embedded.books[0].title").value(TOWER));
+
+        mockMvc.perform(get("/books").param("author", "voss").param("difficulty", "EASY"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.books").doesNotExist());
+    }
+
+    @Test
+    void getBooksIgnoresBlankFilters() throws Exception {
+        mockMvc.perform(get("/books").param("title", " ").param("author", "").param("category", " "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.books.length()").value(2));
+    }
+
+    @Test
+    void getBooksTreatsLikeWildcardsInTitleAndAuthorAsLiterals() throws Exception {
+        importBook(SPECIAL, "A_B 50% !", List.of(), Difficulty.MEDIUM);
+
+        for (String filter : List.of("title", "author")) {
+            for (String special : List.of("%", "_", "!")) {
+                mockMvc.perform(get("/books").param(filter, special))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$._embedded.books.length()").value(1))
+                        .andExpect(jsonPath("$._embedded.books[0].title").value(SPECIAL));
+            }
+        }
     }
 
     // Book
@@ -148,13 +201,73 @@ class BookControllerTest {
                 .andExpect(jsonPath("$.detail").value(containsString(String.valueOf(UNKNOWN_BOOK_ID))));
     }
 
-    @Test
-    void getBookReturns404WhenBookHasNoBeginSection() throws Exception {
-        long brokenId = insertBookWithoutSections();
+    // Book categories
 
-        mockMvc.perform(get(BOOK_PATH, brokenId))
+    @Test
+    void addBookCategoryAddsTheCategoryToTheBook() throws Exception {
+        mockMvc.perform(put(CATEGORY_PATH, cavernsId, "fantasy")).andExpect(status().isOk());
+
+        mockMvc.perform(get(BOOK_PATH, cavernsId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories", contains("fantasy")));
+        mockMvc.perform(get("/books").param("category", "fantasy"))
+                .andExpect(jsonPath("$._embedded.books.length()").value(1))
+                .andExpect(jsonPath("$._embedded.books[0].title").value(CAVERNS));
+    }
+
+    @Test
+    void addBookCategoryDoesNotAddTheSameCategoryTwiceWhateverTheCasing() throws Exception {
+        mockMvc.perform(put(CATEGORY_PATH, towerId, "mystery")).andExpect(status().isOk());
+        mockMvc.perform(put(CATEGORY_PATH, towerId, "Mystery")).andExpect(status().isOk());
+        mockMvc.perform(put(CATEGORY_PATH, towerId, "MYSTERY")).andExpect(status().isOk());
+
+        mockMvc.perform(get(BOOK_PATH, towerId)).andExpect(jsonPath("$.categories", contains("mystery")));
+    }
+
+    @Test
+    void addBookCategoryKeepsExistingCategories() throws Exception {
+        mockMvc.perform(put(CATEGORY_PATH, towerId, "Horror")).andExpect(status().isOk());
+
+        mockMvc.perform(get(BOOK_PATH, towerId)).andExpect(jsonPath("$.categories", contains("mystery", "Horror")));
+    }
+
+    @Test
+    void addBookCategoryReturns400ForBlankCategory() throws Exception {
+        mockMvc.perform(put(CATEGORY_PATH, towerId, " ")).andExpect(status().isBadRequest());
+
+        mockMvc.perform(get(BOOK_PATH, towerId)).andExpect(jsonPath("$.categories", contains("mystery")));
+    }
+
+    @Test
+    void addBookCategoryReturns404ForUnknownBook() throws Exception {
+        mockMvc.perform(put(CATEGORY_PATH, UNKNOWN_BOOK_ID, "fantasy"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.detail").value("BEGIN section on book id [" + brokenId + "] not found."));
+                .andExpect(jsonPath("$.detail").value(containsString(String.valueOf(UNKNOWN_BOOK_ID))));
+    }
+
+    @Test
+    void removeBookCategoryRemovesTheCategoryWhateverTheCasing() throws Exception {
+        mockMvc.perform(put(CATEGORY_PATH, towerId, "Horror")).andExpect(status().isOk());
+
+        mockMvc.perform(delete(CATEGORY_PATH, towerId, "MYSTERY")).andExpect(status().isOk());
+
+        mockMvc.perform(get(BOOK_PATH, towerId)).andExpect(jsonPath("$.categories", contains("Horror")));
+        mockMvc.perform(get("/books").param("category", "mystery"))
+                .andExpect(jsonPath("$._embedded.books").doesNotExist());
+    }
+
+    @Test
+    void removeBookCategoryLeavesTheBookUnchangedWhenItDoesNotHaveTheCategory() throws Exception {
+        mockMvc.perform(delete(CATEGORY_PATH, towerId, "fantasy")).andExpect(status().isOk());
+
+        mockMvc.perform(get(BOOK_PATH, towerId)).andExpect(jsonPath("$.categories", contains("mystery")));
+    }
+
+    @Test
+    void removeBookCategoryReturns404ForUnknownBook() throws Exception {
+        mockMvc.perform(delete(CATEGORY_PATH, UNKNOWN_BOOK_ID, "mystery"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value(containsString(String.valueOf(UNKNOWN_BOOK_ID))));
     }
 
     // Section
@@ -247,6 +360,22 @@ class BookControllerTest {
         fail("No END section reached after " + MAX_STEPS + " steps");
     }
 
+    // Begins on section 5 so its begin link differs from the caverns book, which begins on section 1.
+    private void importBook(String title, String author, List<String> categories, Difficulty difficulty) {
+        bookImportService.importBook(new BookImportRequest(
+                title,
+                author,
+                categories,
+                difficulty,
+                List.of(
+                        new Section(
+                                5,
+                                "You wake at the foot of a drowned tower.",
+                                SectionType.BEGIN,
+                                List.of(new Option("Climb the stairs", 6, List.of()))),
+                        new Section(6, "The tower top opens to the sky.", SectionType.END, List.of()))));
+    }
+
     private String body(RequestBuilder request) throws Exception {
         return mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -261,11 +390,5 @@ class BookControllerTest {
 
     private long bookId(String title) {
         return jdbcTemplate.queryForObject("SELECT id FROM books WHERE title = ?", Long.class, title);
-    }
-
-    private long insertBookWithoutSections() {
-        return jdbcTemplate.queryForObject(
-                "INSERT INTO books (title, author, difficulty) VALUES ('Broken Book', 'Nobody', 'EASY') RETURNING id",
-                Long.class);
     }
 }

@@ -86,13 +86,13 @@ public class BookEntity {
             throw new IllegalArgumentException("Category must not be blank.");
         }
 
-        if (!categories.contains(category.toLowerCase())) {
+        if (categories.stream().noneMatch(category::equalsIgnoreCase)) {
             categories.add(category);
         }
     }
 
     public void removeCategory(String category) {
-        categories.remove(category);
+        categories.removeIf(existing -> existing.equalsIgnoreCase(category));
     }
 
     public List<SectionEntity> getSections() {
