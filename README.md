@@ -67,6 +67,16 @@ The OpenAPI document:
 curl http://localhost:8080/api-docs
 ```
 
+### Adding a book
+
+Post a book in the same JSON format as the files in `src/main/resources/seed/books`:
+
+```bash
+curl -i -X POST -H 'Content-Type: application/json' -d @src/main/resources/seed/books/valid-crystal-caverns.json http://localhost:8080/books
+```
+
+The response is the new book (201), and its `Location` header points to it. A book that breaks the import rules is rejected (400) with the reason: it needs exactly one `BEGIN` section, at least one `END` section, unique section ids, and options that lead to existing sections. Books are not checked for duplicates, so posting the same book twice adds it twice.
+
 ### Playing a book
 
 A player is identified by the `X-Username` header, which every adventure endpoint requires. A player can have several adventures at once, on the same book or on different books, and can only see their own.

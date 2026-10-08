@@ -27,7 +27,7 @@ public class BookImportService {
     }
 
     @Transactional
-    public void importBook(BookImportRequest book) {
+    public Long importBook(BookImportRequest book) {
         try {
             Set<ConstraintViolation<BookImportRequest>> violations = validator.validate(book);
 
@@ -41,7 +41,7 @@ public class BookImportService {
         }
 
         try {
-            bookRepository.insert(book);
+            return bookRepository.insert(book);
         } catch (Exception e) {
             throw new IllegalArgumentException(e.getMessage(), e);
         }
