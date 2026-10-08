@@ -4,6 +4,10 @@ spring:
     username: adventure
     password: local_dev_password
 
+springdoc:
+  api-docs:
+    path: /api-docs
+
 management:
   endpoint:
     health:

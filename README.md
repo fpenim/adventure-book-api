@@ -66,6 +66,25 @@ The OpenAPI document:
 ```bash
 curl http://localhost:8080/api-docs
 ```
+Available in the local profile only.
+
+### Browsing books
+
+`GET /books` lists the books, optionally filtered by `title`, `author`, `category` and `difficulty`. Each book links to its first section, and each option in a section links to the section it leads to, so a book can be read by following links. Reading this way keeps no state.
+
+### Playing a book
+
+The `/adventures` endpoints track a player's progress through a book. The player is identified by the `X-Username` header, which every request must send. A player can be in several books at once, each with its own progress.
+
+1. Start a book with `POST /adventures/{bookId}`. The player begins on the first section with 10 health.
+2. Pick an option by sending a `POST` to its `choose` link. The response is the section the player moved to and their updated health, since options can gain or lose health.
+3. Repeat until the status is `FINISHED` (an end section was reached) or `DEAD` (health reached 0). Neither allows further choices.
+
+`GET /adventures/{bookId}` returns the current state, to resume later. `POST /adventures/{bookId}/restart` puts the player back on the first section with 10 health at any time.
+
+```bash
+curl -X POST http://localhost:8080/adventures/1 -H "X-Username: alice"
+```
 
 ### Health check
 
